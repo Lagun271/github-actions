@@ -27,6 +27,14 @@ inputs:
     description: Review event type (COMMENT, REQUEST_CHANGES, APPROVE)
     required: false
     default: COMMENT
+  input_token_price_per_1m_usd:
+    description: Optional input token price (USD per 1M tokens) for cost estimate
+    required: false
+    default: "0"
+  output_token_price_per_1m_usd:
+    description: Optional output token price (USD per 1M tokens) for cost estimate
+    required: false
+    default: "0"
 
 runs:
   using: composite
@@ -101,6 +109,15 @@ runs:
           fi
         fi
 
+        INPUT_TOKENS="$(jq -r '.usage.input_tokens // .usage.prompt_tokens // 0' response.json 2>/dev/null || echo 0)"
+        OUTPUT_TOKENS="$(jq -r '.usage.output_tokens // .usage.completion_tokens // 0' response.json 2>/dev/null || echo 0)"
+        TOTAL_TOKENS="$(jq -r '.usage.total_tokens // 0' response.json 2>/dev/null || echo 0)"
+
+        INPUT_PRICE_PER_1M="${{ inputs.input_token_price_per_1m_usd }}"
+        OUTPUT_PRICE_PER_1M="${{ inputs.output_token_price_per_1m_usd }}"
+
+        ESTIMATED_COST_USD="$(awk -v in_t="$INPUT_TOKENS" -v out_t="$OUTPUT_TOKENS" -v in_p="$INPUT_PRICE_PER_1M" -v out_p="$OUTPUT_PRICE_PER_1M" 'BEGIN { printf "%.6f", ((in_t * in_p) + (out_t * out_p)) / 1000000 }')"
+
         GENERATED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
         RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
@@ -108,6 +125,12 @@ runs:
           echo "review_body<<EOF"
           echo "## OpenAI API PR Review"
           echo "_Generated: ${GENERATED_AT_UTC} (UTC) · [Run](${RUN_URL})_"
+          echo "_Usage: input=${INPUT_TOKENS}, output=${OUTPUT_TOKENS}, total=${TOTAL_TOKENS}_"
+          if [ "$INPUT_PRICE_PER_1M" != "0" ] || [ "$OUTPUT_PRICE_PER_1M" != "0" ]; then
+            echo "_Estimated cost (USD): ${ESTIMATED_COST_USD}_"
+          else
+            echo "_Estimated cost: not configured (set input/output token prices in workflow inputs)_"
+          fi
           echo
           echo "$REVIEW_TEXT"
           echo "EOF"

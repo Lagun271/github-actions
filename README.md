@@ -41,10 +41,17 @@ jobs:
       - uses: ./.github/_shared-actions/actions/openai-pr-review
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
-          github_token: ${{ github.token }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           pr_number: ${{ github.event.pull_request.number }}
           base_ref: ${{ github.event.pull_request.base.ref }}
           model: gpt-5-mini
           max_diff_chars: "120000"
-          review_event: COMMENT
+          review_event: REQUEST_CHANGES
+          input_token_price_per_1m_usd: "0"
+          output_token_price_per_1m_usd: "0"
 ```
+
+Notes:
+- `review_event: REQUEST_CHANGES` creates a formal “changes requested” review.
+- Exact billed amount is not returned by the API in this action. The action reports token usage and can show an estimated cost when price inputs are configured.
+
