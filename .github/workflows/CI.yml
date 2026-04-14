@@ -1,0 +1,27 @@
+name: Build OpenAI PR Review Action
+
+on:
+  pull_request:
+    paths:
+      - 'actions/openai-pr-review/**'
+      - '.github/workflows/build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'actions/openai-pr-review/**'
+      - '.github/workflows/build.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run tests
+        run: node --test actions/openai-pr-review/test/review-core.test.mjs
