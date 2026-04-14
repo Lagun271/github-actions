@@ -4,16 +4,32 @@ Reusable GitHub Actions assets for Lagun271 repositories.
 
 ## Composite action: `actions/openai-pr-review`
 
-This action now:
+This action reviews a pull request diff with OpenAI and posts results back to GitHub.
+
+### What this action produces (and where it appears)
+
+When the action runs, it creates two types of PR feedback:
+
+1. **Human-readable top-level review summary**
+   - Posted as a normal GitHub PR review (conversation tab).
+   - Includes summary text and usage metadata.
+
+2. **Inline review comments on code**
+   - Posted directly on changed lines in the PR **Files changed** view.
+   - Only comments findings that can be anchored to changed lines in the diff.
+
+### Core behavior
+
 - builds a PR diff
-- sends diff + strict review prompt to OpenAI Responses API
+- sends diff + review instructions to OpenAI Responses API
 - parses structured JSON findings
-- posts a human-readable top-level PR review summary
+- posts top-level human-readable PR review summary
 - posts inline PR file comments for findings with `path` + `line`
 - filters inline comments to changed lines in the diff
 - optionally fails CI based on severity threshold
 
 ### Inputs
+
 - `openai_api_key` (required)
 - `github_token` (required)
 - `pr_number` (required)
@@ -23,6 +39,27 @@ This action now:
 - `prompt_file` (optional; appended to default prompt)
 - `review_event` (`COMMENT`, `REQUEST_CHANGES`, `APPROVE`)
 - `fail_on_severity` (optional: `high`, `medium`, `low`)
+
+### Prompt behavior
+
+- Default prompt is always loaded from:
+  - `actions/openai-pr-review/default-system-prompt.md`
+- If you pass `prompt_file`, that file is appended as **additional repository-specific instructions**.
+
+Example custom prompt file in caller repo:
+
+```txt
+# .github/review-prompt.txt
+Prioritize correctness and security over style.
+Avoid duplicate findings.
+Only flag issues with clear user impact.
+```
+
+And pass it in workflow `with`:
+
+```yaml
+prompt_file: .github/review-prompt.txt
+```
 
 ### Caller workflow example (private cross-repo use)
 
@@ -95,5 +132,4 @@ node actions/openai-pr-review/src/run-review.js
 Dry-run output is written to `dry-run-report.json` by default (override with `DRY_RUN_OUTPUT_FILE`).
 
 Notes:
-- The default system prompt is in `actions/openai-pr-review/default-system-prompt.md`.
 - The model must return strict JSON so findings can be converted into inline PR comments.
