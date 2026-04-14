@@ -1,0 +1,23 @@
+{
+  "summary": "Potential reliability and correctness issues found.",
+  "findings": [
+    {
+      "severity": "high",
+      "path": "src/app.js",
+      "line": 2,
+      "end_line": 2,
+      "title": "Unhandled parse failure",
+      "body": "JSON.parse can throw and crash the request path.",
+      "suggested_fix": "Wrap parsing in try/catch and return a controlled error response."
+    },
+    {
+      "severity": "low",
+      "path": "src/missing.js",
+      "line": 1,
+      "end_line": 1,
+      "title": "Non-diff path",
+      "body": "This path is intentionally invalid for dry-run rejection testing.",
+      "suggested_fix": "Use a file present in the diff."
+    }
+  ]
+}

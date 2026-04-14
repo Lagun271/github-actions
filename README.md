@@ -4,10 +4,25 @@ Reusable GitHub Actions assets for Lagun271 repositories.
 
 ## Composite action: `actions/openai-pr-review`
 
-This action:
+This action now:
 - builds a PR diff
-- requests review text from OpenAI Responses API
-- submits a formal GitHub PR review via `pulls.createReview`
+- sends diff + strict review prompt to OpenAI Responses API
+- parses structured JSON findings
+- posts a human-readable top-level PR review summary
+- posts inline PR file comments for findings with `path` + `line`
+- filters inline comments to changed lines in the diff
+- optionally fails CI based on severity threshold
+
+### Inputs
+- `openai_api_key` (required)
+- `github_token` (required)
+- `pr_number` (required)
+- `base_ref` (required)
+- `model` (default `gpt-5-mini`)
+- `max_diff_chars` (default `120000`)
+- `prompt_file` (optional; appended to default prompt)
+- `review_event` (`COMMENT`, `REQUEST_CHANGES`, `APPROVE`)
+- `fail_on_severity` (optional: `high`, `medium`, `low`)
 
 ### Caller workflow example (private cross-repo use)
 
@@ -46,12 +61,39 @@ jobs:
           base_ref: ${{ github.event.pull_request.base.ref }}
           model: gpt-5-mini
           max_diff_chars: "120000"
+          prompt_file: .github/review-prompt.txt
           review_event: REQUEST_CHANGES
-          input_token_price_per_1m_usd: "0"
-          output_token_price_per_1m_usd: "0"
+          fail_on_severity: high
 ```
 
-Notes:
-- `review_event: REQUEST_CHANGES` creates a formal “changes requested” review.
-- Exact billed amount is not returned by the API in this action. The action reports token usage and can show an estimated cost when price inputs are configured.
+## Local testing (no workflow run required)
 
+Pure logic tests are in:
+- `actions/openai-pr-review/src/review-core.mjs`
+- `actions/openai-pr-review/test/review-core.test.mjs`
+
+Run tests locally:
+
+```bash
+node --test actions/openai-pr-review/test/*.test.mjs
+```
+
+## Local dry-run preview
+
+You can preview exactly what top-level review + inline payloads would be generated without calling GitHub APIs:
+
+1. Create a local `pr.diff` file (or copy one from CI).
+2. Use fixture output from `actions/openai-pr-review/test/fixtures/openai-response.valid.json`.
+
+```bash
+DRY_RUN=1 \
+OPENAI_RESPONSE_FILE=actions/openai-pr-review/test/fixtures/openai-response.valid.json \
+DEFAULT_PROMPT_PATH=actions/openai-pr-review/default-system-prompt.md \
+node actions/openai-pr-review/src/run-review.mjs
+```
+
+Dry-run output is written to `dry-run-report.json` by default (override with `DRY_RUN_OUTPUT_FILE`).
+
+Notes:
+- The default system prompt is in `actions/openai-pr-review/default-system-prompt.md`.
+- The model must return strict JSON so findings can be converted into inline PR comments.
