@@ -45,11 +45,17 @@ jobs:
   e2e-review:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR head
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: refs/pull/${{ inputs.pr_number }}/head
+
+      - name: Checkout PR head commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "pull/${{ inputs.pr_number }}/head:pr-${{ inputs.pr_number }}-head"
+          git checkout "pr-${{ inputs.pr_number }}-head"
 
       - name: Run OpenAI PR review action (real API call)
         uses: ./actions/openai-pr-review
