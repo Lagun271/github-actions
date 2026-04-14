@@ -1,0 +1,64 @@
+name: OpenAI PR Review E2E (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Target pull request number in this repository
+        required: true
+        type: string
+      base_ref:
+        description: Base branch used for diff generation
+        required: false
+        default: main
+        type: string
+      model:
+        description: OpenAI model
+        required: false
+        default: gpt-5-mini
+        type: string
+      prompt_file:
+        description: Optional repo prompt file to append to default prompt
+        required: false
+        default: ""
+        type: string
+      review_event:
+        description: Review event to post
+        required: false
+        default: COMMENT
+        type: choice
+        options:
+          - COMMENT
+          - REQUEST_CHANGES
+          - APPROVE
+      max_diff_chars:
+        description: Max diff size sent to OpenAI
+        required: false
+        default: "20000"
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  e2e-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ inputs.pr_number }}/head
+
+      - name: Run OpenAI PR review action (real API call)
+        uses: ./actions/openai-pr-review
+        with:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          github_token: ${{ github.token }}
+          pr_number: ${{ inputs.pr_number }}
+          base_ref: ${{ inputs.base_ref }}
+          model: ${{ inputs.model }}
+          max_diff_chars: ${{ inputs.max_diff_chars }}
+          prompt_file: ${{ inputs.prompt_file }}
+          review_event: ${{ inputs.review_event }}
