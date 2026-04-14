@@ -7,6 +7,11 @@ on:
         description: Target pull request number in this repository
         required: true
         type: string
+      ref_name:
+        description: Optional git ref/branch to checkout (defaults to PR head)
+        required: false
+        default: ""
+        type: string
       base_ref:
         description: Base branch used for diff generation
         required: false
@@ -45,11 +50,23 @@ jobs:
   e2e-review:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR head
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: refs/pull/${{ inputs.pr_number }}/head
+
+      - name: Checkout target ref
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "${{ inputs.ref_name }}" ]; then
+            git fetch origin "${{ inputs.ref_name }}:${{ inputs.ref_name }}"
+            git checkout "${{ inputs.ref_name }}"
+          else
+            git fetch origin "pull/${{ inputs.pr_number }}/head:pr-${{ inputs.pr_number }}-head"
+            git checkout "pr-${{ inputs.pr_number }}-head"
+          fi
 
       - name: Run OpenAI PR review action (real API call)
         uses: ./actions/openai-pr-review
