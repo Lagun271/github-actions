@@ -78,4 +78,4 @@ runs:
         DEFAULT_PROMPT_PATH: ${{ github.action_path }}/default-system-prompt.md
       run: |
         set -euo pipefail
-        node "${{ github.action_path }}/src/run-review.mjs"
+        node "${{ github.action_path }}/src/run-review.js"

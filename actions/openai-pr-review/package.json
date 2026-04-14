@@ -1,0 +1,5 @@
+{
+  "name": "openai-pr-review-action",
+  "private": true,
+  "type": "module"
+}

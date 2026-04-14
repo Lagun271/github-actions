@@ -4,12 +4,12 @@ on:
   pull_request:
     paths:
       - 'actions/openai-pr-review/**'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/CI.yml'
   push:
     branches: [main]
     paths:
       - 'actions/openai-pr-review/**'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/CI.yml'
 
 jobs:
   test:
@@ -24,4 +24,4 @@ jobs:
           node-version: '22'
 
       - name: Run tests
-        run: node --test actions/openai-pr-review/test/review-core.test.mjs
+        run: node --test actions/openai-pr-review/test/review-core.test.js

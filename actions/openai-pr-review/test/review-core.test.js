@@ -7,7 +7,7 @@ import {
   partitionFindingsByDiffEligibility,
   shouldFailBySeverity,
   sortFindingsBySeverity,
-} from '../src/review-core.mjs';
+} from '../src/review-core.js';
 
 test('extractJsonObject handles wrapped markdown output', () => {
   const raw = '```json\n{"summary":"ok","findings":[]}\n```';

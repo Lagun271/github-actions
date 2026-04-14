@@ -69,13 +69,13 @@ jobs:
 ## Local testing (no workflow run required)
 
 Pure logic tests are in:
-- `actions/openai-pr-review/src/review-core.mjs`
-- `actions/openai-pr-review/test/review-core.test.mjs`
+- `actions/openai-pr-review/src/review-core.js`
+- `actions/openai-pr-review/test/review-core.test.js`
 
 Run tests locally:
 
 ```bash
-node --test actions/openai-pr-review/test/*.test.mjs
+node --test actions/openai-pr-review/test/*.test.js
 ```
 
 ## Local dry-run preview
@@ -89,7 +89,7 @@ You can preview exactly what top-level review + inline payloads would be generat
 DRY_RUN=1 \
 OPENAI_RESPONSE_FILE=actions/openai-pr-review/test/fixtures/openai-response.valid.json \
 DEFAULT_PROMPT_PATH=actions/openai-pr-review/default-system-prompt.md \
-node actions/openai-pr-review/src/run-review.mjs
+node actions/openai-pr-review/src/run-review.js
 ```
 
 Dry-run output is written to `dry-run-report.json` by default (override with `DRY_RUN_OUTPUT_FILE`).

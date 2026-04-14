@@ -7,7 +7,7 @@ import {
   partitionFindingsByDiffEligibility,
   shouldFailBySeverity,
   sortFindingsBySeverity,
-} from './review-core.mjs';
+} from './review-core.js';
 
 function requiredEnv(name) {
   const value = process.env[name];
