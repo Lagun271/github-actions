@@ -118,17 +118,15 @@ jobs:
           GENERATED_AT_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
+          # Use a collision-resistant delimiter to prevent EOF injection from AI-generated content
+          DELIM="REVIEW_BODY_$(openssl rand -hex 8)"
           {
+            echo "review_body<<${DELIM}"
             echo "## OpenAI API PR Review"
             echo "_Generated: ${GENERATED_AT_UTC} (UTC) · [Run](${RUN_URL})_"
             echo
             echo "$REVIEW_TEXT"
-          } > review.md
-
-          {
-            echo "review_body<<EOF"
-            cat review.md
-            echo "EOF"
+            echo "${DELIM}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Submit GitHub PR review
